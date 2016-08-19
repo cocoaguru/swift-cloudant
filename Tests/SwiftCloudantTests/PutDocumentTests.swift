@@ -26,7 +26,7 @@ class PutDocumentTests: XCTestCase {
         super.setUp()
 
         dbName = generateDBName()
-        self.client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
+        self.client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
         createDatabase(databaseName: dbName!, client: client!)
     }
 

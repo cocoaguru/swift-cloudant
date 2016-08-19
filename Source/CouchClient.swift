@@ -17,6 +17,37 @@
 import Foundation
 
 /**
+ Configures an instance of CouchDBClient.
+ */
+public struct ClientConfiguration {
+    /**
+     Should the client back off when a 429 response is encountered. Backing off will result 
+     in the client retrying the request at a later time.
+     */
+    public var shouldBackOff: Bool
+    /**
+     The number of attempts the client should make to back off and get a successful response
+     from CouchDB.
+     
+     - Note: This is hard limited by the client to 10 retries.
+     */
+    public var backOffAttempts: UInt
+    
+    /**
+     Creates an ClientConfiguration
+     - parameter shouldBackOff: Should the client automatically back off.
+     - parameter backOffAttempts: The number of attempts the client should make to back off and 
+     get a successful response. Default 3.
+     */
+    public init(shouldBackOff: Bool, backOffAttempts: UInt = 3){
+        self.shouldBackOff = shouldBackOff
+        self.backOffAttempts = backOffAttempts
+    }
+    
+}
+
+
+/**
  Class for running operations against a CouchDB instance.
  */
 public class CouchDBClient {
@@ -33,8 +64,9 @@ public class CouchDBClient {
      - parameter url: url of the server to connect to.
      - parameter username: the username to use when authenticating.
      - parameter password: the password to use when authenticating.
+     - parameter configuration: configuration options for the client.
      */
-    public init(url: URL, username: String?, password: String?) {
+    public init(url: URL, username: String?, password: String?, configuration: ClientConfiguration) {
         self.rootURL = url
         self.username = username
         self.password = password
@@ -47,8 +79,12 @@ public class CouchDBClient {
         } else {
             interceptors = []
         }
-
-        self.session = InterceptableSession(delegate: nil, requestInterceptors: interceptors)
+        
+        let configuration = InterceptableSessionConfiguration(shouldBackOff: configuration.shouldBackOff,
+                                                              backOffRetires: configuration.backOffAttempts,
+                                                              requestInterceptors: interceptors)
+        
+        self.session = InterceptableSession(delegate: nil, configuration: configuration)
 
     }
 

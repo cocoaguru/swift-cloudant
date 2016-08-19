@@ -26,7 +26,7 @@ class CreateDatabaseTests: XCTestCase {
     override func setUp() {
         super.setUp()
         self.dbName = generateDBName()
-        client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
+        client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
     }
 
     override func tearDown() {

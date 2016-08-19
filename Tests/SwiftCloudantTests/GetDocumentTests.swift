@@ -27,7 +27,7 @@ class GetDocumentTests: XCTestCase {
         super.setUp()
 
         dbName = generateDBName()
-        client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
+        client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
         createDatabase(databaseName: dbName!, client: client!)
     }
 
@@ -43,7 +43,7 @@ class GetDocumentTests: XCTestCase {
         let data = createTestDocuments(count: 1)
 
         let putDocumentExpectation = expectation(description: "put document")
-        let client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
+        let client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
 
         let put = PutDocumentOperation(id: UUID().uuidString.lowercased(),
                                      body: data[0],
@@ -98,7 +98,7 @@ class GetDocumentTests: XCTestCase {
     func testGetDocumentUsingDBAdd() {
         let data = createTestDocuments(count: 1)
         let getDocumentExpectation = expectation(description: "get document")
-        let client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
+        let client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
 
         let id = UUID().uuidString.lowercased()
         let putDocumentExpectation = self.expectation(description: "put document")

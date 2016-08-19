@@ -48,7 +48,7 @@ public class QueryViewTests: XCTestCase {
     override public func setUp() {
         super.setUp()
         dbName = generateDBName()
-        client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
+        client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
     }
 
     override public func tearDown() {

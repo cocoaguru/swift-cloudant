@@ -20,6 +20,8 @@ import XCTest
 
 // Extension to add functions for commonly used operations in tests.
 extension XCTestCase {
+    
+    var defaultConfig: ClientConfiguration { return ClientConfiguration(shouldBackOff: true) }
 
     var url: String {
         get {

@@ -29,7 +29,7 @@ public class CreateQueryIndexTests : XCTestCase {
         super.setUp()
         
         dbName = generateDBName()
-        client = CouchDBClient(url: URL(string:self.url)!, username: self.username, password: self.password)
+        client = CouchDBClient(url: URL(string:self.url)!, username: self.username, password: self.password, configuration: defaultConfig)
     }
     
     
