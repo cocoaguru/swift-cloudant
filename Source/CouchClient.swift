@@ -15,6 +15,7 @@
 //
 
 import Foundation
+import Dispatch
 
 /**
  Configures an instance of CouchDBClient.
@@ -27,11 +28,19 @@ public struct ClientConfiguration {
     public var shouldBackOff: Bool
     /**
      The number of attempts the client should make to back off and get a successful response
-     from CouchDB.
+     from server.
      
-     - Note: This is hard limited by the client to 10 retries.
+     - Note: The maximum is hard limited by the client to 10 retries.
      */
     public var backOffAttempts: UInt
+    
+    /**
+     The inital value to use when backing off.
+     
+     - Remark: The client uses a doubling back off when a 429 reponse is encountered, so care is required when selecting
+     the inital back off value and the number of attempts to back off and successfully retreive a response from the server.
+     */
+    public var initalBackOff:DispatchTimeInterval
     
     /**
      Creates an ClientConfiguration
@@ -39,9 +48,10 @@ public struct ClientConfiguration {
      - parameter backOffAttempts: The number of attempts the client should make to back off and 
      get a successful response. Default 3.
      */
-    public init(shouldBackOff: Bool, backOffAttempts: UInt = 3){
+    public init(shouldBackOff: Bool, backOffAttempts: UInt = 3, initalBackOff: DispatchTimeInterval =  .milliseconds(250)){
         self.shouldBackOff = shouldBackOff
         self.backOffAttempts = backOffAttempts
+        self.initalBackOff = initalBackOff
     }
     
 }
@@ -66,7 +76,10 @@ public class CouchDBClient {
      - parameter password: the password to use when authenticating.
      - parameter configuration: configuration options for the client.
      */
-    public init(url: URL, username: String?, password: String?, configuration: ClientConfiguration) {
+    public init(url: URL,
+                username: String?,
+                password: String?,
+                configuration: ClientConfiguration = ClientConfiguration(shouldBackOff: false)) {
         self.rootURL = url
         self.username = username
         self.password = password
@@ -80,11 +93,12 @@ public class CouchDBClient {
             interceptors = []
         }
         
-        let configuration = InterceptableSessionConfiguration(shouldBackOff: configuration.shouldBackOff,
+        let sessionConfiguration = InterceptableSessionConfiguration(shouldBackOff: configuration.shouldBackOff,
                                                               backOffRetires: configuration.backOffAttempts,
+                                                              initalBackOff: configuration.initalBackOff,
                                                               requestInterceptors: interceptors)
         
-        self.session = InterceptableSession(delegate: nil, configuration: configuration)
+        self.session = InterceptableSession(delegate: nil, configuration: sessionConfiguration)
 
     }
 

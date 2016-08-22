@@ -22,7 +22,7 @@ class InterceptableSessionTests : XCTestCase {
     }()
     
     func testInterceptableSessionBacksOff() throws {
-        let session = InterceptableSession()
+        let session = InterceptableSession(delegate: nil, configuration: InterceptableSessionConfiguration(shouldBackOff:true))
         session.session = URLSession(configuration: sessionConfig, delegate: session, delegateQueue: nil)
         
         guard let url = URL(string:"http://example.com") else {
@@ -51,7 +51,7 @@ class InterceptableSessionTests : XCTestCase {
         let config = sessionConfig
         config.protocolClasses = [AlwaysBackOffHTTPURLProtocol.self]
         
-        let session = InterceptableSession()
+        let session = InterceptableSession(delegate: nil, configuration: InterceptableSessionConfiguration(shouldBackOff:true))
         session.session = URLSession(configuration: config, delegate: session, delegateQueue: nil)
         
         guard let url = URL(string:"http://example.com") else {

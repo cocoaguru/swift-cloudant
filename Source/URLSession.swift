@@ -111,12 +111,22 @@ internal struct InterceptableSessionConfiguration {
      */
     internal var shouldBackOff: Bool
     
+    /** 
+     The inital value to use when backing off.
+    */
+    internal var initalBackOff: DispatchTimeInterval
+    
     internal var requestInterceptors: [HTTPInterceptor]
     
-    init(totalRetries: UInt = 10, shouldBackOff:Bool, backOffRetires: UInt = 3, requestInterceptors: [HTTPInterceptor] = []){
+    init(totalRetries: UInt = 10, shouldBackOff:Bool,
+         backOffRetires: UInt = 3,
+         initalBackOff: DispatchTimeInterval = .milliseconds(250),
+         requestInterceptors: [HTTPInterceptor] = []){
+        
         self.totalRetries = totalRetries
         self.shouldBackOff = shouldBackOff
         self.backOffRetires = backOffRetires
+        self.initalBackOff = initalBackOff
         self.requestInterceptors = requestInterceptors
     }
 }
@@ -191,7 +201,7 @@ internal class InterceptableSession: NSObject, URLSessionDelegate, URLSessionTas
     private let configuration: InterceptableSessionConfiguration
     
     convenience override init() {
-        self.init(delegate: nil, configuration: InterceptableSessionConfiguration(shouldBackOff: true))
+        self.init(delegate: nil, configuration: InterceptableSessionConfiguration(shouldBackOff: false))
         
     }
 
@@ -270,12 +280,11 @@ internal class InterceptableSession: NSObject, URLSessionDelegate, URLSessionTas
             statusCode == 429 && self.configuration.shouldBackOff && task.remainingBackOffRetires > 0 && task.remainingRetries > 0 {
             task.remainingBackOffRetires -= 1
             
-            // Before using the hardcorde value we should check for the Retry-After: header.
-            var backOffTime:Int = 250
+            var backOffTime:DispatchTimeInterval = configuration.initalBackOff
             for _ in 0...(configuration.backOffRetires - task.remainingBackOffRetires ) {
-                backOffTime = backOffTime*2
+                backOffTime = backOffTime * 2
             }
-            deadline = DispatchWallTime.now() + .milliseconds(backOffTime)
+            deadline = DispatchWallTime.now() + backOffTime
             ctx.shouldRetry = true // make sure we retry.
             
         } else {
@@ -341,4 +350,19 @@ internal class InterceptableSession: NSObject, URLSessionDelegate, URLSessionTas
 
     }
 
+}
+
+fileprivate extension DispatchTimeInterval {
+    static fileprivate func *(interval: DispatchTimeInterval, multiple: Int) -> DispatchTimeInterval {
+        switch (interval){
+        case .microseconds(let value):
+            return .microseconds(value * multiple)
+        case .milliseconds(let value):
+            return .milliseconds(value * multiple)
+        case .nanoseconds(let value):
+            return .nanoseconds(value * multiple)
+        case .seconds(let value):
+            return .seconds(value * multiple)
+        }
+    }
 }
