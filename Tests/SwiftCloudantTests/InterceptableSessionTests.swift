@@ -4,7 +4,17 @@
 //
 //  Created by Rhys Short on 19/08/2016.
 //
+//  Copyright (C) 2016 IBM Corp.
 //
+//  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+//  except in compliance with the License. You may obtain a copy of the License at
+//    http://www.apache.org/licenses/LICENSE-2.0
+//  Unless required by applicable law or agreed to in writing, software distributed under the
+//  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+//  either express or implied. See the License for the specific language governing permissions
+//  and limitations under the License.
+//
+
 
 import Foundation
 import XCTest
@@ -103,6 +113,42 @@ class InterceptableSessionTests : XCTestCase {
         XCTAssertEqual(0, remaingTotalRetries(for: task))
     }
     
+    func test429ConfiguredViaClient() throws {
+        
+        let expectation = self.expectation(description: "429 from example.com")
+        
+        let client = CouchDBClient(url: URL(string: "http://example.com")!,
+                                   username: username,
+                                   password: password,
+                                   configuration: ClientConfiguration(shouldBackOff:true))
+        let config = sessionConfig
+        config.protocolClasses = [AlwaysBackOffHTTPURLProtocol.self]
+        
+        //get the seesion from the client.
+        
+        guard let session = interceptableSession(for: client)
+        else {
+            XCTFail("Failed to get session instance from client")
+            return
+        }
+        session.session = URLSession(configuration: config, delegate: session, delegateQueue: nil)
+        
+        let createDB = CreateDatabaseOperation(name: "test") {(response, info, error) in
+            XCTAssertNotNil(response)
+            XCTAssertNotNil(info)
+            XCTAssertNotNil(error)
+            if let info = info {
+                XCTAssertEqual(429, info.statusCode)
+            }
+            expectation.fulfill()
+        }
+        
+        client.add(operation: createDB)
+        self.waitForExpectations(timeout: 10.0)
+    
+    
+    }
+    
     func testInterceptableSessionNoBackOff() throws {
         let config = sessionConfig
         config.protocolClasses = [AlwaysBackOffHTTPURLProtocol.self]
@@ -149,6 +195,20 @@ class InterceptableSessionTests : XCTestCase {
         }
         
         return -1
+    }
+    
+    func interceptableSession(for client:CouchDBClient) -> InterceptableSession? {
+        let mirror = Mirror(reflecting: client);
+        let values = mirror.children.filter { (key, value) in
+            return key == "session"
+            }.first
+        
+        if let value = values?.value as? InterceptableSession {
+            return value
+        }
+    
+        return nil
+
     }
     
     
