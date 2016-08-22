@@ -39,7 +39,7 @@ class FindDocumentOperationTests: XCTestCase {
     override func setUp() {
         super.setUp()
         dbName = generateDBName()
-        client = CouchDBClient(url: URL(string:self.url)!, username: self.username, password: self.password, configuration: defaultConfig)
+        client = CouchDBClient(url: URL(string:self.url)!, username: self.username, password: self.password)
     }
     
     override func tearDown() {

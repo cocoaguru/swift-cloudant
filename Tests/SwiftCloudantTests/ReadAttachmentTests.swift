@@ -33,7 +33,7 @@ class ReadAttachmentTests: XCTestCase {
         super.setUp()
         
         dbName = generateDBName()
-        client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
+        client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
         createDatabase(databaseName: dbName!, client: client!)
         let createDoc = PutDocumentOperation(id: docId, body: createTestDocuments(count: 1).first!, databaseName: dbName!) {[weak self] (response, info, error) in
             self?.revId = response?["rev"] as? String

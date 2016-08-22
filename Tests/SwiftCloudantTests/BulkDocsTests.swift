@@ -28,7 +28,7 @@ class BulkDocsTests : XCTestCase {
     override func setUp() {
         super.setUp()
         self.dbName = generateDBName()
-        client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
+        client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
         createDatabase(databaseName: dbName!, client: client!)
     }
     

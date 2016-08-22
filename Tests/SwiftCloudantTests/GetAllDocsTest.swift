@@ -27,7 +27,7 @@ class GetAllDocsTest: XCTestCase {
         super.setUp()
         
         dbName = generateDBName()
-        client = CouchDBClient(url: URL(string: url)!, username: username, password: password, configuration: defaultConfig)
+        client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
         createDatabase(databaseName: dbName, client: client!)
         for doc in createTestDocuments(count: 10) {
             let putDoc = PutDocumentOperation(id: UUID().uuidString.lowercased(), body: doc, databaseName: dbName) { response, httpInfo, error in
