@@ -19,13 +19,14 @@ import XCTest
 
 class ViewPagingTests : XCTestCase {
     
-    lazy var dbName: String = { return self.generateDBName()}()
     var client: CouchDBClient? = nil
+    var dbName: String = ""
     
     override func setUp() {
         super.setUp()
         
         dbName = generateDBName()
+        
         client = CouchDBClient(url: URL(string: url)!, username: username, password: password)
         createDatabase(databaseName: dbName, client: client!)
         
